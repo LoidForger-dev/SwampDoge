@@ -178,7 +178,7 @@
           <p class="swamp-small">Loading pinned picks…</p>
         </div>
         <div class="swamp-small" style="margin-top:15px;">
-          Update by pinning a new tweet and editing <code>/picks.json</code>.
+          Update by pinning a new tweet and editing <code>picks.json</code>.
         </div>
       </div>
     </div>
@@ -258,8 +258,8 @@
       window.addEventListener('resize', ()=>{ particles=[]; initParticles(); });
       initParticles(); drawParticles();
 
-      // SwampBets logic
-      const PICKS_JSON = "/picks.json";
+      // SwampBets logic – fixed relative path for picks.json
+      const PICKS_JSON = "picks.json";   // <-- changed from "/picks.json"
       const STORAGE_KEY = "swampdoge_votes_v1";
       const LB_KEY = "swampdoge_leaderboard_v1";
 
@@ -273,18 +273,29 @@
         if (!box) return;
         try {
           const res = await fetch(PICKS_JSON, { cache: "no-store" });
+          if (!res.ok) {
+            box.innerHTML = `<p class="swamp-small">❌ Failed to fetch picks.json (HTTP ${res.status}). Make sure the file exists in the root.</p>`;
+            return;
+          }
           const data = await res.json();
           const tweetUrl = data?.tweetUrl;
           if (!tweetUrl || !tweetUrl.includes("x.com/")) {
-            box.innerHTML = `<p class="swamp-small">Pinned picks tweet not set. Update /picks.json.</p>`;
+            box.innerHTML = `<p class="swamp-small">⚠️ tweetUrl missing or invalid in picks.json. Current value: ${tweetUrl}</p>`;
             return;
           }
           box.innerHTML = `<blockquote class="twitter-tweet" data-theme="dark"><a href="${tweetUrl}"></a></blockquote>`;
+          // Load Twitter widget if not already present
           if (!document.querySelector('script[src="https://platform.twitter.com/widgets.js"]')) {
-            const s = document.createElement("script"); s.src = "https://platform.twitter.com/widgets.js"; s.async = true;
+            const s = document.createElement("script");
+            s.src = "https://platform.twitter.com/widgets.js";
+            s.async = true;
             document.body.appendChild(s);
-          } else if (window.twttr?.widgets) window.twttr.widgets.load();
-        } catch { box.innerHTML = `<p class="swamp-small">Couldn't load picks. Check /picks.json.</p>`; }
+          } else if (window.twttr?.widgets) {
+            window.twttr.widgets.load();
+          }
+        } catch (err) {
+          box.innerHTML = `<p class="swamp-small">❌ Error loading picks.json: ${err.message}</p>`;
+        }
       }
 
       function getVotes() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { return {}; } }
