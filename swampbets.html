@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>SWAMPDOGE · SwampBets Arena</title>
+  <meta name="description" content="SwampBets – predict, compete, and earn. The prediction arena of SWAMPDOGE.">
+  <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%236CFF8F'><circle cx='50' cy='50' r='45'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* ----- same global styles as main ----- */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family:'Poppins',sans-serif; color:#fff; line-height:1.5;
+      background-color:#0B1F16; overflow-x:hidden;
+    }
+    body::before {
+      content:''; position:fixed; top:0; left:0; width:100%; height:100%;
+      background-image:url('background.png'); background-size:cover; background-position:center;
+      background-attachment:fixed; opacity:0.2; z-index:-1; pointer-events:none;
+    }
+    body::after {
+      content:''; position:fixed; top:0; left:0; width:100%; height:100%;
+      background:radial-gradient(circle at 50% 50%, transparent 30%, rgba(0,30,10,0.3) 90%);
+      pointer-events:none; z-index:9998;
+    }
+    #particle-canvas { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9997; }
+    html { scroll-behavior:smooth; }
+
+    h1,h2,h3,h4 { font-family:'Orbitron',sans-serif; font-weight:800; letter-spacing:-0.02em; }
+    h2 { font-size:2.5rem; margin-bottom:1.5rem; position:relative; display:inline-block; }
+    h2:after {
+      content:''; position:absolute; bottom:-10px; left:0; width:80px; height:4px;
+      background:#6CFF8F; box-shadow:0 0 8px #6CFF8F; border-radius:4px;
+    }
+    .container { max-width:1280px; margin:0 auto; padding:0 24px; position:relative; z-index:10; }
+
+    /* navigation (same) */
+    nav {
+      position:sticky; top:0; z-index:100; background:rgba(11,31,22,0.75); backdrop-filter:blur(16px);
+      border-bottom:1px solid rgba(108,255,143,0.15); padding:16px 0;
+    }
+    .nav-container { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px; }
+    .logo {
+      font-size:1.8rem; font-weight:800; font-family:'Orbitron',sans-serif;
+      background:linear-gradient(135deg,#fff,#6CFF8F); -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    }
+    .nav-links { display:flex; gap:32px; align-items:center; flex-wrap:wrap; }
+    .nav-links a {
+      color:#e0f0e5; text-decoration:none; font-weight:500; font-size:1.1rem;
+      padding:6px 0; border-bottom:2px solid transparent; transition:0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active { color:#6CFF8F; border-bottom:2px solid #6CFF8F; }
+
+    .back-link { margin:20px 0; display:inline-block; color:#6CFF8F; text-decoration:none; font-weight:500; }
+    .back-link i { margin-right:6px; }
+
+    /* SwampBets custom styles */
+    .swamp-wrap { max-width:1000px; margin:40px auto; padding:0 16px; }
+    .swamp-header { text-align:center; margin-bottom:40px; }
+    .swamp-header h1 { font-size:3rem; color:#6CFF8F; text-shadow:0 0 15px #6CFF8F; }
+    .swamp-header p { color:#ccc; max-width:600px; margin:10px auto 0; }
+
+    /* tabs */
+    .swamp-tabs {
+      display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px;
+      border-bottom:1px solid rgba(108,255,143,0.2); padding-bottom:12px;
+    }
+    .swamp-tab {
+      background:transparent; border:1px solid rgba(108,255,143,0.3); color:#ccc;
+      padding:10px 20px; border-radius:40px; cursor:pointer; font-weight:600;
+      transition:all 0.2s; font-family:'Poppins',sans-serif;
+    }
+    .swamp-tab:hover { border-color:#6CFF8F; color:#6CFF8F; }
+    .swamp-tab[aria-selected="true"] {
+      background:#6CFF8F; color:#0B1F16; border-color:#6CFF8F; box-shadow:0 0 15px #6CFF8F;
+    }
+
+    /* cards */
+    .swamp-card {
+      background:rgba(20,50,35,0.7); backdrop-filter:blur(12px);
+      border:1px solid rgba(108,255,143,0.25); border-radius:24px;
+      padding:28px; margin-bottom:24px;
+    }
+    .swamp-card h3 { color:#6CFF8F; margin-bottom:16px; font-size:1.6rem; }
+
+    /* market cards */
+    .swamp-market {
+      background:rgba(0,0,0,0.2); border:1px solid rgba(108,255,143,0.2); border-radius:20px;
+      padding:20px; margin:20px 0;
+    }
+    .market-header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px; }
+    .market-title { font-weight:700; font-size:1.3rem; }
+    .market-pill { background:rgba(108,255,143,0.1); border:1px solid #6CFF8F; border-radius:40px; padding:4px 12px; font-size:0.85rem; }
+    .vote-grid { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin:20px 0 10px; }
+    .vote-btn {
+      background:rgba(255,255,255,0.05); border:1px solid rgba(108,255,143,0.3);
+      border-radius:60px; padding:14px; text-align:center; cursor:pointer;
+      transition:0.2s; font-weight:600; display:flex; flex-direction:column; gap:5px;
+    }
+    .vote-btn:hover { border-color:#6CFF8F; background:rgba(108,255,143,0.1); }
+    .vote-btn .percentage { font-size:1.4rem; color:#6CFF8F; }
+    .vote-btn .votes { font-size:0.9rem; color:#aaa; }
+
+    /* form */
+    .swamp-form { max-width:600px; margin:0 auto; }
+    .swamp-row { display:flex; gap:15px; flex-wrap:wrap; margin-bottom:15px; }
+    .swamp-input, .swamp-select, .swamp-textarea {
+      width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(108,255,143,0.3);
+      border-radius:12px; padding:12px 16px; color:white; outline:none;
+    }
+    .swamp-input:focus, .swamp-select:focus, .swamp-textarea:focus { border-color:#6CFF8F; }
+    .swamp-btn {
+      background:#6CFF8F; color:#0B1F16; border:none; border-radius:60px;
+      padding:12px 24px; font-weight:700; cursor:pointer; transition:0.2s;
+      display:inline-flex; align-items:center; gap:8px; text-decoration:none;
+    }
+    .swamp-btn:hover { background:#3EDC6B; box-shadow:0 0 20px #6CFF8F; }
+
+    /* leaderboard table */
+    .swamp-table { width:100%; border-collapse:collapse; margin-top:20px; }
+    .swamp-table th { text-align:left; color:#6CFF8F; font-weight:600; padding:12px 8px; border-bottom:1px solid #6CFF8F; }
+    .swamp-table td { padding:12px 8px; border-bottom:1px solid rgba(108,255,143,0.2); }
+    .swamp-small { font-size:0.9rem; color:#aaa; }
+
+    /* footer */
+    .footer { text-align:center; padding:40px 0 20px; border-top:1px solid #1E4D36; margin-top:60px; color:#a0c0a0; }
+
+    @media (max-width:700px) {
+      .vote-grid { grid-template-columns:1fr; }
+      .swamp-tabs { justify-content:center; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particle-canvas"></canvas>
+
+  <nav>
+    <div class="container nav-container">
+      <div class="logo">SWAMPDOGE</div>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="index.html#narrative">Narrative</a>
+        <a href="index.html#roadmap">Roadmap</a>
+        <a href="index.html#tokenomics">Tokenomics</a>
+        <a href="index.html#chart">Chart</a>
+        <a href="#" class="active">SwampBets</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to main</a>
+  </div>
+
+  <main class="swamp-wrap">
+    <div class="swamp-header">
+      <h1>🐊 SwampBets Arena</h1>
+      <p>Predict, compete, and earn. Community-driven sports prediction – no real money, all swamp fun.</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="swamp-tabs" id="swamp-tabs">
+      <button class="swamp-tab" data-tab="picks" aria-selected="true">🔥 Daily Picks</button>
+      <button class="swamp-tab" data-tab="arena" aria-selected="false">🏟️ Prediction Arena</button>
+      <button class="swamp-tab" data-tab="submit" aria-selected="false">📝 Submit Pick</button>
+      <button class="swamp-tab" data-tab="leaderboard" aria-selected="false">🏆 Leaderboard</button>
+    </div>
+
+    <!-- Panel: Daily Picks -->
+    <div class="swamp-panel" data-panel="picks">
+      <div class="swamp-card">
+        <h3>🔥 Daily Picks</h3>
+        <div id="swamp-pinned-tweet">
+          <p class="swamp-small">Loading pinned picks…</p>
+        </div>
+        <div class="swamp-small" style="margin-top:15px;">
+          Update by pinning a new tweet and editing <code>/picks.json</code>.
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel: Arena -->
+    <div class="swamp-panel" data-panel="arena" style="display:none;">
+      <div class="swamp-card">
+        <h3>🏟️ Prediction Arena</h3>
+        <div id="swamp-markets"></div>
+        <p class="swamp-small" style="margin-top:15px;">Community voting – on‑chain markets coming later.</p>
+      </div>
+    </div>
+
+    <!-- Panel: Submit Pick -->
+    <div class="swamp-panel" data-panel="submit" style="display:none;">
+      <div class="swamp-card">
+        <h3>📝 Submit Your Pick</h3>
+        <form id="swamp-form" name="swamp-picks" method="POST" data-netlify="true" class="swamp-form">
+          <input type="hidden" name="form-name" value="swamp-picks">
+          <div class="swamp-row">
+            <input type="text" class="swamp-input" id="swamp-name" name="name" placeholder="Name (optional)">
+            <select class="swamp-select" name="sport">
+              <option>NBA</option><option>NFL</option><option>NHL</option><option>Soccer</option><option>UFC</option><option>Other</option>
+            </select>
+          </div>
+          <input type="text" class="swamp-input" id="swamp-pick" name="pick" placeholder="Your pick (e.g. Celtics ML, Over 2.5)" required>
+          <textarea class="swamp-textarea" name="notes" placeholder="Short reasoning…"></textarea>
+          <div style="display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;">
+            <button class="swamp-btn" type="submit"><i class="fas fa-paper-plane"></i> Submit Pick</button>
+            <a class="swamp-btn" href="https://t.me/+h4Zk11lkMghjNGMx" target="_blank"><i class="fab fa-telegram"></i> Join Telegram</a>
+          </div>
+          <p class="swamp-small" style="margin-top:15px;">On Netlify, submissions appear in Forms.</p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Panel: Leaderboard -->
+    <div class="swamp-panel" data-panel="leaderboard" style="display:none;">
+      <div class="swamp-card">
+        <h3>🏆 Leaderboard (device-local)</h3>
+        <div id="swamp-leaderboard"></div>
+        <p class="swamp-small" style="margin-top:15px;">MVP version – global stats coming in Phase 2.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>© 2026 Swamp Gang · compete, predict, earn. $SWAMPDOGE</p>
+  </footer>
+
+  <script>
+    (function() {
+      // Particle system
+      const canvas = document.getElementById('particle-canvas');
+      const ctx = canvas.getContext('2d');
+      let width, height, particles = [];
+      function initParticles() {
+        width = window.innerWidth; height = window.innerHeight;
+        canvas.width = width; canvas.height = height;
+        for (let i = 0; i < 60; i++) {
+          particles.push({
+            x: Math.random()*width, y: Math.random()*height, radius: Math.random()*3+1,
+            speedX: (Math.random()-0.5)*0.2, speedY: (Math.random()-0.5)*0.2,
+            color: `rgba(108,255,143,${Math.random()*0.1+0.03})`
+          });
+        }
+      }
+      function drawParticles() {
+        ctx.clearRect(0,0,width,height);
+        particles.forEach(p => {
+          ctx.beginPath(); ctx.arc(p.x,p.y,p.radius,0,Math.PI*2); ctx.fillStyle=p.color; ctx.fill();
+          p.x += p.speedX; p.y += p.speedY;
+          if(p.x<0) p.x=width; if(p.x>width) p.x=0; if(p.y<0) p.y=height; if(p.y>height) p.y=0;
+        });
+        requestAnimationFrame(drawParticles);
+      }
+      window.addEventListener('resize', ()=>{ particles=[]; initParticles(); });
+      initParticles(); drawParticles();
+
+      // SwampBets logic
+      const PICKS_JSON = "/picks.json";
+      const STORAGE_KEY = "swampdoge_votes_v1";
+      const LB_KEY = "swampdoge_leaderboard_v1";
+
+      const $ = (sel) => document.querySelector(sel);
+      const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+      function safeText(s) { return String(s ?? "").replace(/[<>]/g, ""); }
+
+      async function loadPinnedTweet() {
+        const box = $("#swamp-pinned-tweet");
+        if (!box) return;
+        try {
+          const res = await fetch(PICKS_JSON, { cache: "no-store" });
+          const data = await res.json();
+          const tweetUrl = data?.tweetUrl;
+          if (!tweetUrl || !tweetUrl.includes("x.com/")) {
+            box.innerHTML = `<p class="swamp-small">Pinned picks tweet not set. Update /picks.json.</p>`;
+            return;
+          }
+          box.innerHTML = `<blockquote class="twitter-tweet" data-theme="dark"><a href="${tweetUrl}"></a></blockquote>`;
+          if (!document.querySelector('script[src="https://platform.twitter.com/widgets.js"]')) {
+            const s = document.createElement("script"); s.src = "https://platform.twitter.com/widgets.js"; s.async = true;
+            document.body.appendChild(s);
+          } else if (window.twttr?.widgets) window.twttr.widgets.load();
+        } catch { box.innerHTML = `<p class="swamp-small">Couldn't load picks. Check /picks.json.</p>`; }
+      }
+
+      function getVotes() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { return {}; } }
+      function setVotes(v) { localStorage.setItem(STORAGE_KEY, JSON.stringify(v)); }
+      function getLB() { try { return JSON.parse(localStorage.getItem(LB_KEY) || "[]"); } catch { return []; } }
+      function setLB(v) { localStorage.setItem(LB_KEY, JSON.stringify(v)); }
+
+      const DEFAULT_MARKETS = [
+        { id: "m1", type: "WIN_LOSE", league: "NBA", title: "Team A vs Team B", a: "Team A", b: "Team B", starts: "Tomorrow" },
+        { id: "m2", type: "OVER_UNDER", league: "Soccer", title: "Match Total Goals (O/U)", a: "Over 2.5", b: "Under 2.5", starts: "Tomorrow" }
+      ];
+
+      function impliedPct(aVotes, bVotes) {
+        const t = aVotes + bVotes; if (t <= 0) return { a: 50, b: 50 };
+        return { a: Math.round((aVotes / t) * 100), b: Math.round((bVotes / t) * 100) };
+      }
+
+      function renderMarkets() {
+        const wrap = $("#swamp-markets");
+        if (!wrap) return;
+        const votes = getVotes();
+        wrap.innerHTML = DEFAULT_MARKETS.map(m => {
+          const v = votes[m.id] || { a: 0, b: 0 };
+          const pct = impliedPct(v.a, v.b);
+          return `
+            <div class="swamp-market">
+              <div class="market-header">
+                <span class="market-title">${safeText(m.title)}</span>
+                <span class="market-pill">${m.league} · ${m.type === "WIN_LOSE" ? "Win/Lose" : "Over/Under"}</span>
+              </div>
+              <div class="vote-grid">
+                <div class="vote-btn" data-vote="${m.id}:a">
+                  <span>✅ ${safeText(m.a)}</span>
+                  <span class="percentage">${pct.a}%</span>
+                  <span class="votes">${v.a} votes</span>
+                </div>
+                <div class="vote-btn" data-vote="${m.id}:b">
+                  <span>✅ ${safeText(m.b)}</span>
+                  <span class="percentage">${pct.b}%</span>
+                  <span class="votes">${v.b} votes</span>
+                </div>
+              </div>
+              <div class="swamp-small">Starts: ${m.starts}</div>
+            </div>
+          `;
+        }).join("");
+
+        $$("[data-vote]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const [mid, side] = btn.getAttribute("data-vote").split(":");
+            const v = getVotes(); v[mid] = v[mid] || { a: 0, b: 0 };
+            v[mid][side] = (v[mid][side] || 0) + 1;
+            setVotes(v); renderMarkets();
+          });
+        });
+      }
+
+      function tabsInit() {
+        const tabs = $$("#swamp-tabs button");
+        const panels = $$(".swamp-panel");
+        function activate(id) {
+          tabs.forEach(t => t.setAttribute("aria-selected", t.dataset.tab === id ? "true" : "false"));
+          panels.forEach(p => p.style.display = p.dataset.panel === id ? "block" : "none");
+        }
+        tabs.forEach(t => t.addEventListener("click", () => activate(t.dataset.tab)));
+        activate("picks");
+      }
+
+      function formInit() {
+        const form = $("#swamp-form");
+        if (!form) return;
+        form.addEventListener("submit", () => {
+          const name = safeText($("#swamp-name")?.value || "Anonymous").slice(0, 24);
+          const pick = safeText($("#swamp-pick")?.value || "").slice(0, 80);
+          const lb = getLB(); lb.unshift({ name, pick, at: new Date().toISOString() });
+          setLB(lb.slice(0, 25)); renderLeaderboard();
+        });
+      }
+
+      function renderLeaderboard() {
+        const table = $("#swamp-leaderboard");
+        if (!table) return;
+        const lb = getLB();
+        if (!lb.length) { table.innerHTML = `<p class="swamp-small">No picks yet. Be the first 🐊</p>`; return; }
+        const rows = lb.map(r => `<tr><td>${safeText(r.name)}</td><td>${safeText(r.pick)}</td><td class="swamp-small">${new Date(r.at).toLocaleString()}</td></tr>`).join("");
+        table.innerHTML = `<table class="swamp-table"><thead><tr><th>User</th><th>Pick</th><th>Time</th></tr></thead><tbody>${rows}</tbody></table>`;
+      }
+
+      // Initialize everything
+      tabsInit();
+      loadPinnedTweet();
+      renderMarkets();
+      formInit();
+      renderLeaderboard();
+    })();
+  </script>
+</body>
+</html>
